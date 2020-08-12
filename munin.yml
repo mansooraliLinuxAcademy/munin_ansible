@@ -1,0 +1,17 @@
+---
+- hosts: munin-master
+  vars:
+    muninadmin_password: muninadmin
+    munin_server: 127.0.0.1
+    munin_client: <clientIP>
+    munin_server_for_node: ^10\.164\.67\.65$
+  roles:
+    - pre-munin
+    - munin-config
+    - munin
+
+- hosts: munin-node1
+  vars:
+    munin_server_for_node: ^10\.164\.67\.65$
+  roles:
+    - munin-client 

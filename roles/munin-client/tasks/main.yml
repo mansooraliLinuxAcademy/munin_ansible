@@ -1,0 +1,37 @@
+---
+# tasks file for nagios-master
+- name: Copy munin-node package
+  copy:
+     src: /etc/ansible/roles/munin/packages/munin-node.tgz
+     dest: /tmp
+- name: Creating directory "munin" if doesn't exist
+  file:
+     path: /root/munin
+     state: directory
+     mode: '0755'
+- name: untaring "munin-node"
+  unarchive:
+     src: /tmp/munin-node.tgz
+     dest: /root/munin
+     remote_src: yes
+- name: find munin-node rpm and register the result
+  find:
+     paths: /root/munin/munin-node/
+     patterns: "*rpm"
+  register: rpm_munin_files_node
+- set_fact:
+     rpm_munin_list_node: "{{ rpm_munin_files_node.files | map(attribute='path') | list}}"
+- name: install munin-node
+  yum:
+     name: "{{rpm_munin_list_node}}"
+     state: present
+- name: Configure munin-client to use munin.conf file
+  blockinfile:
+     path: /etc/munin/munin-node.conf
+     insertafter: allow ^::1$
+     block: |
+       allow {{munin_server_for_node}}
+- name: Start munin-node service and enable it on startup
+  systemd:
+     state: started
+     name: munin-node

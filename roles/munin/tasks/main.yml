@@ -1,0 +1,10 @@
+---
+# tasks file for munin
+- name: Start httpd service and enable on startup
+  systemd:
+     state: started
+     name: httpd
+- name: Start munin-node service and enable it on startup
+  systemd:
+     state: started
+     name: munin-node

@@ -1,0 +1,67 @@
+---
+# tasks file for nagios-master
+- name: Copy httpd package
+  copy:
+     src: /etc/ansible/roles/munin/packages/httpd.tgz
+     dest: /tmp
+- name: Copy munin package
+  copy:
+     src: /etc/ansible/roles/munin/packages/munin.tgz
+     dest: /tmp 
+- name: Copy munin-node package
+  copy:
+     src: /etc/ansible/roles/munin/packages/munin-node.tgz
+     dest: /tmp
+- name: Creating directory "munin" if doesn't exist
+  file:
+     path: /root/munin
+     state: directory
+     mode: '0755'
+- name: untaring "httpd" in /root/munin
+  unarchive:
+     src: /tmp/httpd.tgz
+     dest: /root/munin
+     remote_src: yes
+- name: untaring "munin"
+  unarchive:
+     src: /tmp/munin.tgz
+     dest: /root/munin
+     remote_src: yes
+- name: untaring "munin-node"
+  unarchive:
+     src: /tmp/munin-node.tgz
+     dest: /root/munin
+     remote_src: yes
+- name: find rpm files and register the result
+  find:
+     paths: /root/munin/httpd/
+     patterns: "*.rpm"
+  register: rpm_files
+- set_fact:
+     rpm_list: "{{ rpm_files.files | map(attribute='path') | list}}"
+- name: install httpd using rpm_list
+  yum:
+     name: "{{rpm_list}}"
+     state: present
+- name: find munin rpm and register the result
+  find:
+     paths: /root/munin/munin/
+     patterns: "*rpm"
+  register: rpm_munin_files
+- set_fact:
+     rpm_munin_list: "{{ rpm_munin_files.files | map(attribute='path') | list}}"
+- name: install munin
+  yum:
+     name: "{{rpm_munin_list}}"
+     state: present
+- name: find munin-node rpm and register the result
+  find:
+     paths: /root/munin/munin-node/
+     patterns: "*rpm"
+  register: rpm_munin_files_node
+- set_fact:
+     rpm_munin_list_node: "{{ rpm_munin_files_node.files | map(attribute='path') | list}}"
+- name: install munin-node
+  yum:
+     name: "{{rpm_munin_list_node}}"
+     state: present

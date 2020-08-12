@@ -1,0 +1,23 @@
+---
+- name: Configure munin to use munin.conf file
+  blockinfile:
+     path: /etc/munin/munin.conf
+     insertafter: includedir /etc/munin/conf.d
+     block: |
+       [munin.munin]
+       address {{munin_server}}
+       use_node_name yes
+
+- name: Add client IP in master  munin.conf file
+  blockinfile:
+     path: /etc/munin/munin.conf
+     insertafter: includedir /etc/munin/conf.d
+     block: |
+       [munin.client]
+       address {{munin_client}}
+       use_node_name yes
+ 
+- name: Create admin user for httpd admin
+  shell: htpasswd -cb /etc/munin/munin-htpasswd admin {{muninadmin_password}}
+- name: Copy munin.conf
+  copy: src=munin.conf dest=/etc/httpd/conf.d/munin.conf owner=root group=root mode=755
